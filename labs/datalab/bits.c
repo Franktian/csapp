@@ -163,7 +163,7 @@ int tmin(void) {
  *   Rating: 1
  */
 int isTmax(int x) {
-  int max_two = (1<<31) - 1;
+  int max_two = ~(1 << 31);
   return !(x ^ max_two);
 }
 /* 
@@ -175,7 +175,8 @@ int isTmax(int x) {
  *   Rating: 2
  */
 int allOddBits(int x) {
-  return 2;
+  int mask = 0xAAAAAAAA;
+  return !((x & mask) ^ mask);
 }
 /* 
  * negate - return -x 
@@ -185,7 +186,7 @@ int allOddBits(int x) {
  *   Rating: 2
  */
 int negate(int x) {
-  return 2;
+  return ~x + 1;
 }
 //3
 /* 
