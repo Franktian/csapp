@@ -308,7 +308,15 @@ int howManyBits(int x) {
  *   Rating: 4
  */
 unsigned floatScale2(unsigned uf) {
-  return 2;
+  int sign = uf & 0x80000000;
+  int exponent = uf & 0x7F800000;
+  int exponent_is_zero = !exponent;
+  if (exponent_is_zero) {
+      uf = sign | (uf << 1);
+  } else if (exponent != 0x7F800000) {
+      uf = uf + 0x800000;
+  }
+  return uf;
 }
 /* 
  * floatFloat2Int - Return bit-level equivalent of expression (int) f
@@ -323,7 +331,29 @@ unsigned floatScale2(unsigned uf) {
  *   Rating: 4
  */
 int floatFloat2Int(unsigned uf) {
-  return 2;
+  int is_neg = uf >> 31;
+  int exponent = (uf >> 23) & 0xFF;
+  int fraction = uf & 0x7FFFFF;
+  int bias = 127;
+  int len_fraction = 23;
+
+  // (NaN or INF) || greater than values that a 32-bit int can represent
+  if (exponent == 0xFF || exponent > bias + 31)
+      return 0x80000000;
+
+  // Can be represented as 32-bit int
+  if (exponent >= bias) {
+      int power2 = exponent - bias;
+      if (power2 <= len_fraction)
+          fraction = fraction >> (len_fraction - power2);
+      else
+          fraction = fraction << (power2 - len_fraction);
+      int value = (1 << power2) | fraction;
+      return is_neg ? -value : value;
+  }
+
+  // Smaller than values that a 32-bit int can represent
+  return 0;
 }
 /* 
  * floatPower2 - Return bit-level equivalent of the expression 2.0^x
@@ -339,5 +369,26 @@ int floatFloat2Int(unsigned uf) {
  *   Rating: 4
  */
 unsigned floatPower2(int x) {
-    return 2;
+  unsigned expo;
+  unsigned frac;
+
+  if(x < -149){
+    return 0;
+  }
+  //denormalizado
+  if( x<-126 && x>=-149){   
+    int corrimiento = (-x-126);
+    frac =  1 << (23-corrimiento);
+    return frac;
+
+  }
+  if(x>=-126 && x<=127){
+    expo = (x+127)<<23;
+    return expo;
+  }
+  if(x>127){
+    //infinito
+    return 0xFF << 23;;
+  }
+  return 0;
 }
