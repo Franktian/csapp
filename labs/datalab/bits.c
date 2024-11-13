@@ -199,7 +199,15 @@ int negate(int x) {
  *   Rating: 3
  */
 int isAsciiDigit(int x) {
-  return 2;
+  int zero = 0x30;
+  int check = x + ~zero + 1;
+  int is_negative = (check >> 31) & 1;
+
+  int nine = 0x39;
+  int check_two = nine + ~x + 1;
+  int is_negative_two = (check_two >> 31) & 1;
+
+  return !is_negative & !is_negative_two;
 }
 /* 
  * conditional - same as x ? y : z 
